@@ -1,0 +1,103 @@
+﻿name: CI
+
+on:
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - src/**
+      - tests/**
+      - .github/workflows/ci.yml
+  pull_request:
+    branches-ignore:
+      - main
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      statuses: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Super-linter
+        uses: super-linter/super-linter@v6.6.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: true
+          VALIDATE_CSHARP: true
+          VALIDATE_GITHUB_ACTIONS: true
+          VALIDATE_DOCKERFILE_HADOLINT: true
+  build-csharp:
+    needs:
+      - lint
+    name: Build C#
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4.0.1
+        with:
+          dotnet-version: 8.0.x
+      - name: Setup Nuget sources
+        run: |
+          dotnet nuget add source https://nuget.pkg.github.com/SaveApis/index.json --name SaveApis --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
+          dotnet nuget add source https://nuget.hangfire.io/nuget/hangfire-pro/v3/index.json --name hangfire-pro --username ${{ secrets.HANGFIRE_PRO_USER }} --password ${{ secrets.HANGFIRE_PRO_TOKEN }} --store-password-in-clear-text
+          dotnet nuget add source https://nuget.hangfire.io/nuget/hangfire-ace/v3/index.json --name hangfire-ace --username ${{ secrets.HANGFIRE_ACE_USER }} --password ${{ secrets.HANGFIRE_ACE_TOKEN }} --store-password-in-clear-text
+      - name: Restore dependencies
+        run: dotnet restore src/Backend/Backend.csproj
+      - name: Build
+        run: dotnet build src/Backend/Backend.csproj --configuration Release --no-restore --nologo
+  build-docker:
+    needs:
+      - lint
+    name: Build Docker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t backend:ci --build-arg NUGET_USER=${{ github.actor }} --build-arg NUGET_TOKEN=${{ secrets.GITHUB_TOKEN }} --build-arg HANGFIRE_PRO_TOKEN=${{ secrets.HANGFIRE_PRO_TOKEN }} --build-arg HANGFIRE_PRO_USER=${{ secrets.HANGFIRE_PRO_USER }} --build-arg HANGFIRE_ACE_TOKEN=${{ secrets.HANGFIRE_ACE_TOKEN }} --build-arg HANGFIRE_ACE_USER=${{ secrets.HANGFIRE_ACE_USER }} --file src/Backend/Dockerfile .
+      - name: List Docker image
+        run: docker images
+  test:
+    needs:
+      - build-csharp
+      - build-docker
+    name: Test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4.0.1
+        with:
+          dotnet-version: 8.0.x
+      - name: Setup Nuget sources
+        run: |
+          dotnet nuget add source https://nuget.pkg.github.com/SaveApis/index.json --name SaveApis --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
+          dotnet nuget add source https://nuget.hangfire.io/nuget/hangfire-pro/v3/index.json --name hangfire-pro --username ${{ secrets.HANGFIRE_PRO_USER }} --password ${{ secrets.HANGFIRE_PRO_TOKEN }} --store-password-in-clear-text
+          dotnet nuget add source https://nuget.hangfire.io/nuget/hangfire-ace/v3/index.json --name hangfire-ace --username ${{ secrets.HANGFIRE_ACE_USER }} --password ${{ secrets.HANGFIRE_ACE_TOKEN }} --store-password-in-clear-text
+      - name: Restore dependencies
+        run: |
+          dotnet restore tests/Backend.Unit/Backend.Unit.csproj
+          dotnet restore tests/Backend.Integration/Backend.Integration.csproj
+      - name: Run unit tests
+        run: dotnet test tests/Backend.Unit/Backend.Unit.csproj --configuration Release --no-restore --nologo
+      - name: Run integration tests
+        run: dotnet test tests/Backend.Integration/Backend.Integration.csproj --configuration Release --no-restore --nologo
