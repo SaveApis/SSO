@@ -1,0 +1,42 @@
+﻿services:
+  redis:
+    hostname: redis
+    image: redis:7.4-rc2
+    ports:
+      - 6379:6379
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+  backend:
+    depends_on:
+      redis:
+        condition: service_healthy
+    hostname: backend
+    build:
+      context: ..
+      dockerfile: src/Backend/Dockerfile
+    environment:
+      - SAVEAPIS_LOG_LEVEL=Information
+
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=80
+
+      - HANGFIRE_REDIS_NAME=example
+      - HANGFIRE_REDIS_HOST=redis
+      - HANGFIRE_REDIS_PORT=6379
+      - HANGFIRE_REDIS_DATABASE=0
+      - HANGFIRE_REDIS_USERNAME=example
+      - HANGFIRE_REDIS_PASSWORD=example
+      - HANGFIRE_REDIS_SSL=false
+
+      - JWT_ISSUER=sso
+      - JWT_AUDIENCE=sso
+      - JWT_KEY=yourRandomWith64OrMoreLengthKeyWhichShouldBeStoredSafetyAndShouldNotBeSharedWithOtherPeople
+      - JWT_EXPIRATION_IN_HOURS=24
+    ports:
+      - 80:80
+
+volumes:
+  redis-data:
