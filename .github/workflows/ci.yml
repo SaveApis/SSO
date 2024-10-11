@@ -6,7 +6,7 @@ on:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
       packages: read
@@ -25,7 +25,7 @@ jobs:
   build-csharp:
     needs: lint
     name: Build C#
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
       packages: read
@@ -59,7 +59,7 @@ jobs:
   build-docker:
     needs: lint
     name: Build Docker
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
       packages: read
@@ -91,7 +91,7 @@ jobs:
   test:
     needs: build-csharp
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
       packages: read

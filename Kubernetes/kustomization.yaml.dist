@@ -1,0 +1,21 @@
+﻿namespace: sso
+resources:
+  - namespace.yaml
+  - redis/deployment.yaml
+  - redis/service.yaml
+  - mysql/deployment.yaml
+  - mysql/service.yaml
+  - backend/deployment.yaml
+  - backend/service.yaml
+  - backend/ingress.yaml
+
+secretGenerator:
+  - name: mysql
+    literals:
+      - user=${MYSQL_USER}
+      - password=${MYSQL_PASSWORD}
+  - name: jwt
+    literals:
+      - issuer=${JWT_ISSUER}
+      - audience=${JWT_AUDIENCE}
+      - secret=${JWT_SECRET}

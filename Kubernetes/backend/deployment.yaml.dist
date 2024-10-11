@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      name: backend
+      labels:
+        app: backend
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox
+          command: [ 'sh', '-c', 'until nc -z mysql.sso.svc.cluster.local 3306; do echo waiting for mysql; sleep 10; done;' ]
+        - name: wait-for-redis
+          image: busybox
+          command: [ 'sh', '-c', 'until nc -z redis.sso.svc.cluster.local 6379; do echo waiting for redis; sleep 10; done;' ]
+      containers:
+        - name: backend
+          image: registry.digitalocean.com/sso/backend:${VERSION}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Staging
+            - name: ASPNETCORE_HTTP_PORTS
+              value: "80"
+            - name: HANGFIRE_REDIS_NAME
+              value: sso
+            - name: HANGFIRE_REDIS_HOST
+              value: redis.sso.svc.cluster.local
+            - name: HANGFIRE_REDIS_PORT
+              value: "6379"
+            - name: HANGFIRE_REDIS_DATABASE
+              value: "0"
+            - name: JWT_ISSUER
+              valueFrom:
+                secretKeyRef:
+                  name: jwt
+                  key: issuer
+            - name: JWT_AUDIENCE
+              valueFrom:
+                secretKeyRef:
+                  name: jwt
+                  key: audience
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwt
+                  key: secret
+            - name: JWT_EXPIRATION_IN_HOURS
+              value: "24"
+            - name: MYSQL_HOST
+              value: mysql.sso.svc.cluster.local
+            - name: MYSQL_PORT
+              value: "3306"
+            - name: MYSQL_DATABASE
+              value: sso
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: user
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: password
+            - name: EASYCACHING_REDIS_HOST
+              value: redis.sso.svc.cluster.local
+            - name: EASYCACHING_REDIS_PORT
+              value: "6379"
+            - name: EASYCACHING_REDIS_DATABASE
+              value: "1"
+            - name: EASYCACHING_REDIS_BUS_DATABASE
+              value: "2"
+          ports:
+            - containerPort: 80
+              protocol: TCP
+              name: backend
+      restartPolicy: Always
