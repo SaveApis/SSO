@@ -1,0 +1,40 @@
+﻿name: Deploy (Stage)
+on:
+  workflow_run:
+    types:
+      - completed
+    workflows:
+      - "CD (Stage)"
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.1
+      - name: Setup Kubectl
+        uses: azure/setup-kubectl@v4
+      - name: Setup Doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_REGISTRY_TOKEN }}
+      - name: Copy kubeconfig
+        run: doctl kubernetes cluster config save saveapis
+      - name: Setup Files
+        run: |
+          echo Setup MySQL Secrets
+          export MYSQL_USER=${{ secrets.STAGE_MYSQL_USER }}
+          export MYSQL_PASSWORD=${{ secrets.STAGE_MYSQL_PASSWORD }}
+          echo Setup JWT Secrets
+          export JWT_ISSUER=${{ secrets.STAGE_JWT_ISSUER }}
+          export JWT_AUDIENCE=${{ secrets.STAGE_JWT_AUDIENCE }}
+          export JWT_SECRET=${{ secrets.STAGE_JWT_SECRET }}
+          echo Backend Metadata
+          export VERSION=${{ github.sha }}
+          export HOST=stage.sso.saveapis.de
+          echo Convert Files
+          envsubst < ./Kubernetes/backend/deployment.yaml.dist > ./Kubernetes/backend/deployment.yaml
+          envsubst < ./Kubernetes/backend/ingress.yaml.dist > ./Kubernetes/backend/ingress.yaml
+          envsubst < ./Kubernetes/kustomization.yaml.dist > ./Kubernetes/kustomization.yaml
+      - name: Deploy
+        run: kubectl apply -k ./Kubernetes
