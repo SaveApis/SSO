@@ -20,21 +20,30 @@ jobs:
           token: ${{ secrets.DIGITALOCEAN_REGISTRY_TOKEN }}
       - name: Copy kubeconfig
         run: doctl kubernetes cluster config save saveapis
-      - name: Setup Files
-        run: |
-          echo Setup MySQL Secrets
-          export MYSQL_USER=${{ secrets.STAGE_MYSQL_USER }}
-          export MYSQL_PASSWORD=${{ secrets.STAGE_MYSQL_PASSWORD }}
-          echo Setup JWT Secrets
-          export JWT_ISSUER=${{ secrets.STAGE_JWT_ISSUER }}
-          export JWT_AUDIENCE=${{ secrets.STAGE_JWT_AUDIENCE }}
-          export JWT_SECRET=${{ secrets.STAGE_JWT_SECRET }}
-          echo Backend Metadata
-          export VERSION=${{ github.sha }}
-          export HOST=stage.sso.saveapis.de
-          echo Convert Files
-          envsubst < ./Kubernetes/backend/deployment.yaml.dist > ./Kubernetes/backend/deployment.yaml
-          envsubst < ./Kubernetes/backend/ingress.yaml.dist > ./Kubernetes/backend/ingress.yaml
-          envsubst < ./Kubernetes/kustomization.yaml.dist > ./Kubernetes/kustomization.yaml
+      - name: Render backend deployment
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/backend/deployment.yaml.dist
+          output: ./Kubernetes/backend/deployment.yaml
+        env:
+          VERSION: ${{ github.sha }}
+      - name: Render backend ingress
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/backend/ingress.yaml.dist
+          output: ./Kubernetes/backend/ingress.yaml
+        env:
+          HOST: stage.sso.saveapis.de
+      - name: Render kustomization
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/kustomization.yaml.dist
+          output: ./Kubernetes/kustomization.yaml
+        env:
+          MYSQL_USER: ${{ secrets.STAGE_MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.STAGE_MYSQL_PASSWORD }}
+          JWT_ISSUER: ${{ secrets.STAGE_JWT_ISSUER }}
+          JWT_AUDIENCE: ${{ secrets.STAGE_JWT_AUDIENCE }}
+          JWT_SECRET: ${{ secrets.STAGE_JWT_SECRET }}
       - name: Deploy
         run: kubectl apply -k ./Kubernetes
