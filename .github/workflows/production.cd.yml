@@ -38,7 +38,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6.7.0
         with:
-          push: true!clip
+          push: true
           context: .
           file: ./src/Backend/Dockerfile
           tags: |
