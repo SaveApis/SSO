@@ -3,22 +3,21 @@ kind: Ingress
 metadata:
   name: sso
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    cert-manager.io/cluster-issuer: letsencrypt
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: nginx
   tls:
-    - hosts:
-        - ${HOST}
-      secretName: sso-tls
+  - hosts:
+    - ${HOST}
+    secretName: sso-tls
   rules:
-    - host: ${HOST}
-      http:
-        paths:
-          - path: /backend
-            pathType: Prefix
-            backend:
-              service:
-                name: backend
-                port:
-                  number: 80
+  - host: ${HOST}
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: backend
+            port:
+              number: 80
