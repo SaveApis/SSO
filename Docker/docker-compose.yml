@@ -1,12 +1,10 @@
 ﻿services:
   backend:
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_healthy
     build:
-      context: ../
+      context: ..
       dockerfile: src/Backend/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
@@ -19,44 +17,21 @@
       - JWT_AUDIENCE=sso
       - JWT_SECRET=youRandomStringWith64OrMoreCharactersAndShouldNotBeSharedWithUnknown
       - JWT_EXPIRATION_IN_HOURS=24
-      - MYSQL_HOST=db
-      - MYSQL_PORT=3306
-      - MYSQL_DATABASE=sso
-      - MYSQL_USER=sso
-      - MYSQL_PASSWORD=sso
       - EASYCACHING_REDIS_HOST=redis
       - EASYCACHING_REDIS_PORT=6379
       - EASYCACHING_REDIS_DATABASE=1
       - EASYCACHING_REDIS_BUS_DATABASE=2
     ports:
       - "80:80"
-  db:
-    image: mysql:9.0.1
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: sso
-      MYSQL_USER: sso
-      MYSQL_PASSWORD: sso
-    ports:
-      - "3306:3306"
-    volumes:
-      - db:/var/lib/mysql
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
   redis:
-    image: redis:7.4.0-bookworm
+    image: redis:7.4.1-bookworm
     ports:
       - "6379:6379"
     volumes:
       - redis:/data
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: 10s
+      timeout: 5s
 volumes:
-  db:
   redis:

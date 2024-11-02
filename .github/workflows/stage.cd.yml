@@ -42,5 +42,3 @@ jobs:
             hangfire_ace_url=${{ secrets.HANGFIRE_ACE_URL }}
             hangfire_ace_user=${{ secrets.HANGFIRE_ACE_USER }}
             hangfire_ace_token=${{ secrets.HANGFIRE_ACE_TOKEN }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max

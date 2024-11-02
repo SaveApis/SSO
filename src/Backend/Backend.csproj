@@ -8,9 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.10" />
-        <PackageReference Include="SaveApis.Core" Version="1.5.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.8.1" />
+        <PackageReference Include="SaveApis.Core" Version="1.8.0" />
     </ItemGroup>
 
     <ItemGroup>

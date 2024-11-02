@@ -40,8 +40,6 @@ jobs:
           input: ./Kubernetes/kustomization.yaml.dist
           output: ./Kubernetes/kustomization.yaml
         env:
-          MYSQL_USER: ${{ secrets.STAGE_MYSQL_USER }}
-          MYSQL_PASSWORD: ${{ secrets.STAGE_MYSQL_PASSWORD }}
           JWT_ISSUER: ${{ secrets.STAGE_JWT_ISSUER }}
           JWT_AUDIENCE: ${{ secrets.STAGE_JWT_AUDIENCE }}
           JWT_SECRET: ${{ secrets.STAGE_JWT_SECRET }}

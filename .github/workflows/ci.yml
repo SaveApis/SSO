@@ -23,7 +23,6 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_CSHARP: true
   build-csharp:
-    needs: lint
     name: Build C#
     runs-on: self-hosted
     permissions:
@@ -57,7 +56,7 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore --nologo -p:WarnAsError=true
   build-docker:
-    needs: lint
+    needs: build-csharp
     name: Build Docker
     runs-on: self-hosted
     permissions:
@@ -86,8 +85,6 @@ jobs:
             hangfire_ace_url=${{ secrets.HANGFIRE_ACE_URL }}
             hangfire_ace_user=${{ secrets.HANGFIRE_ACE_USER }}
             hangfire_ace_token=${{ secrets.HANGFIRE_ACE_TOKEN }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
   test:
     needs: build-csharp
     name: Test
