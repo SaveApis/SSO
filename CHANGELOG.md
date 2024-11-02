@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="1.0.1"></a>
+## [1.0.1](https://www.github.com/SaveApis/SSO/releases/tag/v1.0.1) (2024-11-02)
+
+### Bug Fixes
+
+* **github:** Fix production pipeline ([#24](https://www.github.com/SaveApis/SSO/issues/24)) ([7157384](https://www.github.com/SaveApis/SSO/commit/7157384a277a6921e6ff808592e95d6573634add))
+
 <a name="1.0.0"></a>
 ## [1.0.0](https://www.github.com/SaveApis/SSO/releases/tag/v1.0.0) (2024-11-02)
 
