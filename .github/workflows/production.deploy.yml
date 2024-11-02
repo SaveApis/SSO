@@ -1,0 +1,57 @@
+﻿name: Deploy (Production)
+on:
+  workflow_run:
+    types:
+      - completed
+    workflows:
+      - "CD (Production)"
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.1
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4.0.1
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore tools
+        run: |
+          dotnet tool restore
+      - name: Read version
+        id: version
+        run: echo "version=$(dotnet versionize inspect)" >> $GITHUB_OUTPUT
+      - name: Setup Kubectl
+        uses: azure/setup-kubectl@v4
+      - name: Setup Doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_REGISTRY_TOKEN }}
+      - name: Copy kubeconfig
+        run: doctl kubernetes cluster config save saveapis
+      - name: Render backend deployment
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/backend/deployment.yaml.dist
+          output: ./Kubernetes/backend/deployment.yaml
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+      - name: Render backend ingress
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/backend/ingress.yaml.dist
+          output: ./Kubernetes/backend/ingress.yaml
+        env:
+          HOST: stage.sso.saveapis.de
+      - name: Render kustomization
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/kustomization.yaml.dist
+          output: ./Kubernetes/kustomization.yaml
+        env:
+          JWT_ISSUER: ${{ secrets.STAGE_JWT_ISSUER }}
+          JWT_AUDIENCE: ${{ secrets.STAGE_JWT_AUDIENCE }}
+          JWT_SECRET: ${{ secrets.STAGE_JWT_SECRET }}
+      - name: Deploy
+        run: kubectl apply -k ./Kubernetes
