@@ -5,6 +5,8 @@ on:
       - completed
     workflows:
       - "CD (Stage)"
+    tags-ignore:
+      - v*
 jobs:
   deploy:
     name: Deploy
