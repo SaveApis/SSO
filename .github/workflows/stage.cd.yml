@@ -3,10 +3,9 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - CHANGELOG.md
-    tags-ignore:
-      - v*
+    paths:
+      - 'src/**'
+      - '.github/workflows/stage.cd.yml'
 jobs:
   publish:
     name: Publish
