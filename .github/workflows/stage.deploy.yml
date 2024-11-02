@@ -5,8 +5,6 @@ on:
       - completed
     workflows:
       - "CD (Stage)"
-    tags-ignore:
-      - v*
 jobs:
   deploy:
     name: Deploy
@@ -22,6 +20,14 @@ jobs:
           token: ${{ secrets.DIGITALOCEAN_REGISTRY_TOKEN }}
       - name: Copy kubeconfig
         run: doctl kubernetes cluster config save saveapis
+
+      - name: Render namespace
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/namespace.yaml.dist
+          output: ./Kubernetes/namespace.yaml
+        env:
+          ENVIRONMENT: stage
       - name: Render backend deployment
         uses: nowactions/envsubst@v1.0.1
         with:
@@ -45,5 +51,6 @@ jobs:
           JWT_ISSUER: ${{ secrets.STAGE_JWT_ISSUER }}
           JWT_AUDIENCE: ${{ secrets.STAGE_JWT_AUDIENCE }}
           JWT_SECRET: ${{ secrets.STAGE_JWT_SECRET }}
+
       - name: Deploy
         run: kubectl apply -k ./Kubernetes
