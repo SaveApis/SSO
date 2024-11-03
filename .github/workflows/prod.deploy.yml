@@ -1,0 +1,67 @@
+﻿name: Deploy (Production)
+on:
+  workflow_run:
+    types:
+      - completed
+    workflows:
+      - "CD (Production)"
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.1
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4.0.1
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore tools
+        run: dotnet tool restore
+      - name: Read Version
+        id: version
+        run: echo "version=$(dotnet versionize inspect)" >> $GITHUB_OUTPUT
+      - name: Setup Kubectl
+        uses: azure/setup-kubectl@v4
+      - name: Setup Doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_REGISTRY_TOKEN }}
+      - name: Copy kubeconfig
+        run: doctl kubernetes cluster config save saveapis
+
+      - name: Render namespace
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/namespace.yaml.dist
+          output: ./Kubernetes/namespace.yaml
+        env:
+          ENVIRONMENT: production
+      - name: Render backend deployment
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/backend/deployment.yaml.dist
+          output: ./Kubernetes/backend/deployment.yaml
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          ENVIRONMENT: production
+      - name: Render backend ingress
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/backend/ingress.yaml.dist
+          output: ./Kubernetes/backend/ingress.yaml
+        env:
+          HOST: sso.saveapis.de
+      - name: Render kustomization
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/kustomization.yaml.dist
+          output: ./Kubernetes/kustomization.yaml
+        env:
+          ENVIRONMENT: production
+          JWT_ISSUER: ${{ secrets.PROD_JWT_ISSUER }}
+          JWT_AUDIENCE: ${{ secrets.PROD_JWT_AUDIENCE }}
+          JWT_SECRET: ${{ secrets.PROD_JWT_SECRET }}
+
+      - name: Deploy
+        run: kubectl apply -k ./Kubernetes
