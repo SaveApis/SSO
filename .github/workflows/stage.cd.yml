@@ -8,6 +8,7 @@ on:
       - 'Kubernetes/**'
       - '.github/workflows/stage.cd.yml'
       - '.github/workflows/stage.deploy.yml'
+      - '!CHANGELOG.md'
 jobs:
   publish:
     name: Publish
