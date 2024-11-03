@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="1.0.3"></a>
+## [1.0.3](https://www.github.com/SaveApis/SSO/releases/tag/v1.0.3) (2024-11-03)
+
+### Bug Fixes
+
+* **github:** No stage cd on release ([#31](https://www.github.com/SaveApis/SSO/issues/31)) ([6f417f2](https://www.github.com/SaveApis/SSO/commit/6f417f2286557c6dc41e0be5201e9aebc15f2023))
+
 <a name="1.0.2"></a>
 ## [1.0.2](https://www.github.com/SaveApis/SSO/releases/tag/v1.0.2) (2024-11-03)
 
