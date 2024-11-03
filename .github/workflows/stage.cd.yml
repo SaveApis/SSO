@@ -5,6 +5,7 @@ on:
       - main
     paths:
       - 'src/**'
+      - 'Kubernetes/**'
       - '.github/workflows/stage.cd.yml'
       - '.github/workflows/stage.deploy.yml'
 jobs:
