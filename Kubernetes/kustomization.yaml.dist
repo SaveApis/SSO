@@ -1,4 +1,4 @@
-﻿namespace: sso
+﻿namespace: sso-{ENVIRONMENT}
 resources:
   - namespace.yaml
   - redis/deployment.yaml
