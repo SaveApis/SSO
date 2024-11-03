@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="1.0.2"></a>
+## [1.0.2](https://www.github.com/SaveApis/SSO/releases/tag/v1.0.2) (2024-11-03)
+
+### Bug Fixes
+
+* **deployment:** Deploy into wrong namespace ([#26](https://www.github.com/SaveApis/SSO/issues/26)) ([67f7f15](https://www.github.com/SaveApis/SSO/commit/67f7f15b9ca47d3f5a80a5f757f60ff0be806b9c))
+
 <a name="1.0.1"></a>
 ## [1.0.1](https://www.github.com/SaveApis/SSO/releases/tag/v1.0.1) (2024-11-02)
 
