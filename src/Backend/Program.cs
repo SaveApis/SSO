@@ -1,8 +1,10 @@
+using System.Reflection;
 using SaveApis.Core.Application.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WithAssemblies().WithAutofac((containerBuilder, configuration) => containerBuilder.WithSwagger(configuration));
+builder.WithAutofac((containerBuilder, configuration) =>
+    containerBuilder.WithAssemblies(Assembly.GetExecutingAssembly()).WithSwagger(configuration));
 
 builder.Services.AddControllers();
 

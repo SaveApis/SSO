@@ -9,13 +9,21 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="SaveApis.Core" Version="1.8.0" />
+        <PackageReference Include="BCrypt.Net-Next" Version="4.0.3"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="SaveApis.Core" Version="1.13.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
     </ItemGroup>
 
+    <ItemGroup>
+        <InternalsVisibleTo Include="TestFramework"/>
+    </ItemGroup>
 </Project>

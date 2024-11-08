@@ -1,3 +1,5 @@
+http-client.private.env.json
+schema.graphql
 .idea/
 
 ## Ignore Visual Studio temporary files, build results, and
@@ -119,9 +121,6 @@ ipch/
 *.vsp
 *.vspx
 *.sap
-
-# Visual Studio Trace Files
-*.e2e
 
 # TFS 2012 Local Workspace
 $tf/
