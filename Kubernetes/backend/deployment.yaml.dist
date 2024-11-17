@@ -5,7 +5,7 @@ metadata:
   labels:
     app: backend
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: backend
@@ -19,6 +19,12 @@ spec:
         - name: wait-for-redis
           image: busybox
           command: [ 'sh', '-c', 'until nc -z redis.sso-${ENVIRONMENT}.svc.cluster.local 6379; do echo waiting for redis; sleep 10; done;' ]
+        - name: wait-for-mysql
+          image: busybox
+          command: [ 'sh', '-c', 'until nc -z mysql.sso-${ENVIRONMENT}.svc.cluster.local 3306; do echo waiting for mysql; sleep 10; done;' ]
+        - name: wait-for-elasticsearch
+          image: busybox
+          command: [ 'sh', '-c', 'until nc -z elasticsearch.sso-${ENVIRONMENT}.svc.cluster.local 9200; do echo waiting for elasticsearch; sleep 30; done;' ]
       containers:
         - name: backend
           image: registry.digitalocean.com/saveapis/sso:${VERSION}
@@ -28,6 +34,10 @@ spec:
               value: ${ENVIRONMENT}
             - name: ASPNETCORE_HTTP_PORTS
               value: "8080"
+            - name: ELASTICSEARCH_NAME
+              value: sso-${ENVIRONMENT}
+            - name: ELASTICSEARCH_URL
+              value: http://elasticsearch.sso-${ENVIRONMENT}.svc.cluster.local:9200
             - name: HANGFIRE_REDIS_NAME
               value: sso
             - name: HANGFIRE_REDIS_HOST

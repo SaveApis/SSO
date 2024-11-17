@@ -41,7 +41,7 @@ jobs:
           dotnet-version: 8.0.x
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v4.1.2
         with:
           key: ${{ runner.os }}-dotnet-${{ hashFiles('**/*.csproj') }}
           path: |
@@ -90,8 +90,11 @@ jobs:
             hangfire_ace_user=${{ secrets.HANGFIRE_ACE_USER }}
             hangfire_ace_token=${{ secrets.HANGFIRE_ACE_TOKEN }}
   test:
+    strategy:
+      matrix:
+        type: [ Integration ]
     needs: build-csharp
-    name: Test
+    name: Test (${{ matrix.type }})
     runs-on: self-hosted
     permissions:
       contents: read
@@ -105,7 +108,7 @@ jobs:
           dotnet-version: 8.0.x
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v4.1.2
         with:
           key: ${{ runner.os }}-dotnet-${{ hashFiles('**/*.csproj') }}
           path: |
@@ -122,4 +125,4 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: dotnet restore
       - name: Test
-        run: dotnet test --configuration Release --no-restore --nologo
+        run: dotnet test --configuration Release --no-restore --nologo --settings .runsettings tests/Backend.${{ matrix.type }}/Backend.${{ matrix.type }}.csproj
