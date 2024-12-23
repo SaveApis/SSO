@@ -1,0 +1,39 @@
+﻿services:
+  backend:
+    depends_on:
+      redis:
+        condition: service_healthy
+    hostname: backend
+    build:
+      context: ..
+      dockerfile: src/Backend/Dockerfile
+    image: sso:dev
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=80
+      - jwt_key=<your-64-long-key>
+      - jwt_issuer=SSO
+      - jwt_audience=SSO
+      - jwt_expiration=24
+      - hangfire_redis_name=SSO
+      - hangfire_redis_host=redis
+      - hangfire_redis_port=6379
+      - hangfire_redis_database=0
+      - "hangfire_redis_prefix=sso:hangfire:"
+    ports:
+      - "80:80"
+  redis:
+    hostname: redis
+    image: redis:8.0-M02-alpine3.20
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  redis-data:
