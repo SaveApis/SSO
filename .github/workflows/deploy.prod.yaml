@@ -1,0 +1,70 @@
+﻿name: Deploy (Prod)
+on:
+  workflow_run:
+    types:
+      - completed
+    workflows:
+      - "CD (Prod)"
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: self-hosted
+    steps:
+      # Setup
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2.5.1
+        with:
+          token: ${{ secrets.DIGITALOCEAN_REGISTRY_TOKEN }}
+      - name: Install kubectl
+        uses: Azure/setup-kubectl@v4.0.0
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v4.1.0
+        with:
+          dotnet-version: 9.0.x
+      - name: Restore tools
+        run: dotnet tool restore
+      - name: Save kubeconfig
+        run: doctl kubernetes cluster kubeconfig save saveapis
+      - name: Read version
+        id: version
+        run: echo "version=$(dotnet versionize inspect)" >> "$GITHUB_OUTPUT"
+
+      # Render
+      - name: Render kustomization
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/kustomization.yaml.dist
+          output: ./Kubernetes/kustomization.yaml
+        env:
+          ENVIRONMENT: production
+          JWT_KEY: ${{ secrets.PROD_JWT_KEY }}
+      - name: Render namespace
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/namespace.yaml.dist
+          output: ./Kubernetes/namespace.yaml
+        env:
+          ENVIRONMENT: production
+      - name: Render backend deployment
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/Backend/deployment.yaml.dist
+          output: ./Kubernetes/Backend/deployment.yaml
+        env:
+          ENVIRONMENT: production
+          VERSION: ${{ steps.version.outputs.version }}
+      - name: Render backend ingress
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/Backend/ingress.yaml.dist
+          output: ./Kubernetes/Backend/ingress.yaml
+        env:
+          HOST: sso.saveapis.de
+          TLS_NAME: sso-saveapis
+      
+      # Deploy
+      - name: Deploy
+        run: kubectl apply -k ./Kubernetes

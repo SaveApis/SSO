@@ -1,0 +1,61 @@
+﻿name: Deploy (Stage)
+on:
+  workflow_run:
+    types:
+      - completed
+    workflows:
+      - "CD (Stage)"
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: self-hosted
+    steps:
+      # Setup
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2.5.1
+        with:
+          token: ${{ secrets.DIGITALOCEAN_REGISTRY_TOKEN }}
+      - name: Install kubectl
+        uses: Azure/setup-kubectl@v4.0.0
+      - name: Save kubeconfig
+        run: doctl kubernetes cluster kubeconfig save saveapis
+
+      # Render
+      - name: Render kustomization
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/kustomization.yaml.dist
+          output: ./Kubernetes/kustomization.yaml
+        env:
+          ENVIRONMENT: staging
+          JWT_KEY: ${{ secrets.STAGE_JWT_KEY }}
+      - name: Render namespace
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/namespace.yaml.dist
+          output: ./Kubernetes/namespace.yaml
+        env:
+          ENVIRONMENT: staging
+      - name: Render backend deployment
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/Backend/deployment.yaml.dist
+          output: ./Kubernetes/Backend/deployment.yaml
+        env:
+          ENVIRONMENT: staging
+          VERSION: ${{ github.sha }}
+      - name: Render backend ingress
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/Backend/ingress.yaml.dist
+          output: ./Kubernetes/Backend/ingress.yaml
+        env:
+          HOST: stage.sso.saveapis.de
+          TLS_NAME: stage-sso-saveapis
+      
+      # Deploy
+      - name: Deploy
+        run: kubectl apply -k ./Kubernetes

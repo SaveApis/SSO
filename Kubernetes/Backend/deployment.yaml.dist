@@ -1,0 +1,52 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      name: backend
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: registry.digitalocean.com/saveapis/sso:${VERSION}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: ${ENVIRONMENT}
+            - name: ASPNETCORE_HTTP_PORTS
+              value: "8080"
+            - name: jwt_key
+              valueFrom:
+                secretKeyRef:
+                  name: jwt
+                  key: key
+            - name: jwt_issuer
+              value: SSO-${ENVIRONMENT}
+            - name: jwt_audience
+              value: SSO-${ENVIRONMENT}
+            - name: jwt_expiration
+              value: "24"
+            - name: hangfire_redis_name
+              value: SSO-${ENVIRONMENT}
+            - name: hangfire_redis_host
+              value: redis.sso-${ENVIRONMENT}.svc.cluster.local
+            - name: hangfire_redis_port
+              value: "6379"
+            - name: hangfire_redis_database
+              value: "0"
+            - name: hangfire_redis_prefix
+              value: "sso:hangfire:"
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+      restartPolicy: Always
+      
