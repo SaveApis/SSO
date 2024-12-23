@@ -1,0 +1,13 @@
+﻿namespace: sso-${ENVIRONMENT}
+resources:
+  - namespace.yaml
+  - Redis/deployment.yaml
+  - Redis/service.yaml
+  - Backend/deployment.yaml
+  - Backend/service.yaml
+  - Backend/ingress.yaml
+
+secretGenerator:
+  - name: jwt
+    literals:
+      - key=${JWT_KEY}
