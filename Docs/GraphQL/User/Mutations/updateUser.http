@@ -1,0 +1,27 @@
+﻿GRAPHQL {{url}}
+Authorization: Bearer {{token}}
+
+mutation($id: UUID!, $dto: UserUpdateDtoInput!) {
+    updateUser(id: $id, dto: $dto) {
+        id
+        createdAt
+        updatedAt
+        firstName
+        lastName
+        email
+        phone
+        userName
+        role
+        active
+    }
+}
+
+{
+  "id": "3ba945cd-682a-4dac-a9df-04053c6c7110",
+  "dto": {
+    "firstName": "Felix2",
+    "lastName": "Developer",
+    "email": "felix.developer@saveapis.com",
+    "userName": "felix.developer"
+  }
+}

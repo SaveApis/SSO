@@ -1,0 +1,16 @@
+﻿GRAPHQL {{url}}
+
+mutation($dto: UserLoginDtoInput!) {
+    login(dto: $dto)
+}
+
+{
+  "dto": {
+    "userName": "{{userName}}",
+    "password": "{{password}}"
+  }
+}
+
+> {%
+    client.global.set("token", response.body["data"]["login"]);
+%}
