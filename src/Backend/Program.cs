@@ -7,7 +7,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder
     .WithAssemblies(Assembly.GetExecutingAssembly())
-    .AddSaveApis(executorBuilder => executorBuilder.AddTypes().DisableIntrospection(false), AuthenticationMode.Jwt,
+    .AddSaveApis(executorBuilder => executorBuilder.AddTypes().DisableIntrospection(false).ModifyCostOptions(options =>
+        {
+            options.MaxFieldCost = 1_000_000;
+            options.MaxTypeCost = 1_000_000;
+            options.EnforceCostLimits = true;
+            options.ApplyCostDefaults = true;
+            options.DefaultResolverCost = 10.0;
+        }),
+        AuthenticationMode.Jwt,
         (containerBuilder, configuration) => containerBuilder.WithModule<MailModule>(configuration));
 
 builder.Services.AddHttpContextAccessor();
