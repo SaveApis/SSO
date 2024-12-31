@@ -1,0 +1,10 @@
+﻿GRAPHQL {{url}}
+Authorization: Bearer {{token}}
+
+mutation($id: UUID!) {
+    deleteUser(id: $id)
+}
+
+{
+  "id": "f7c62d25-7112-4eb6-b24b-eb9259739144"
+}

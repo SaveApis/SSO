@@ -3,6 +3,10 @@
     depends_on:
       redis:
         condition: service_healthy
+      mysql:
+        condition: service_healthy
+      mailcatcher:
+        condition: service_started
     hostname: backend
     build:
       context: ..
@@ -20,6 +24,18 @@
       - hangfire_redis_port=6379
       - hangfire_redis_database=0
       - "hangfire_redis_prefix=sso:hangfire:"
+      - db_mysql_name=SSO
+      - db_mysql_host=mysql
+      - db_mysql_port=3306
+      - db_mysql_user=root
+      - db_mysql_password=root
+      - db_mysql_database=SSO
+      - smtp_enabled=true
+      - smtp_host=mailcatcher
+      - smtp_port=1025
+      - smtp_username=sso@saveapis.com
+      - smtp_password=sso
+      - smtp_enable_ssl=false
     ports:
       - "80:80"
   redis:
@@ -34,6 +50,31 @@
       interval: 5s
       timeout: 5s
       retries: 3
+  mysql:
+    hostname: mysql
+    image: mysql:9.1.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=SSO
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u root -proot" ]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+  mailcatcher:
+    hostname: mailcatcher
+    image: dockage/mailcatcher:0.9.0
+    ports:
+      - "81:1080"
+      - "25:1025"
+    volumes:
+      - mailcatcher-data:/var/mail
 
 volumes:
   redis-data:
+  mysql-data:
+  mailcatcher-data:

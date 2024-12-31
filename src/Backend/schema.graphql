@@ -1,0 +1,175 @@
+﻿# This file was generated. Do not edit manually.
+
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+"The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
+directive @cost(
+    "The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc."
+    weight: String!
+) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+
+type Mutation {
+    activateUser(id: UUID!): UserGetDto!
+    createAdministratorUser(dto: UserCreateDtoInput!): UserGetDto!
+    createDeveloperUser(dto: UserCreateDtoInput!): UserGetDto!
+    createManagerUser(dto: UserCreateDtoInput!): UserGetDto!
+    createUser(dto: UserCreateDtoInput!): UserGetDto!
+    deactivateUser(id: UUID!): UserGetDto!
+    deleteUser(id: UUID!): UUID!
+    login(dto: UserLoginDtoInput!): String!
+    updateUser(dto: UserUpdateDtoInput!, id: UUID!): UserGetDto!
+}
+
+type Query {
+    userById(id: UUID!): UserGetDto!
+    users(order: [UserGetDtoSortInput!], where: UserGetDtoFilterInput): [UserGetDto!]!
+}
+
+type UserGetDto {
+    active: Boolean!
+    createdAt: DateTime!
+    email: String!
+    firstName: String!
+    id: UUID!
+    lastName: String!
+    phone: String
+    role: SsoRole!
+    updatedAt: DateTime
+    userName: String!
+}
+
+"Defines when a policy shall be executed."
+enum ApplyPolicy {
+    "After the resolver was executed."
+    AFTER_RESOLVER
+    "Before the resolver was executed."
+    BEFORE_RESOLVER
+    "The policy is applied in the validation step before the execution."
+    VALIDATION
+}
+
+enum SortEnumType {
+    ASC
+    DESC
+}
+
+enum SsoRole {
+    ADMINISTRATOR
+    DEVELOPER
+    MANAGER
+    USER
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+scalar UUID
+
+input BooleanOperationFilterInput {
+    eq: Boolean
+    neq: Boolean
+}
+
+input DateTimeOperationFilterInput {
+    eq: DateTime
+    gt: DateTime
+    gte: DateTime
+    in: [DateTime]
+    lt: DateTime
+    lte: DateTime
+    neq: DateTime
+    ngt: DateTime
+    ngte: DateTime
+    nin: [DateTime]
+    nlt: DateTime
+    nlte: DateTime
+}
+
+input SsoRoleOperationFilterInput {
+    eq: SsoRole
+    in: [SsoRole!]
+    neq: SsoRole
+    nin: [SsoRole!]
+}
+
+input StringOperationFilterInput {
+    and: [StringOperationFilterInput!]
+    contains: String
+    endsWith: String
+    eq: String
+    in: [String]
+    ncontains: String
+    nendsWith: String
+    neq: String
+    nin: [String]
+    nstartsWith: String
+    or: [StringOperationFilterInput!]
+    startsWith: String
+}
+
+input UserCreateDtoInput {
+    email: String!
+    firstName: String!
+    lastName: String!
+    phone: String
+    userName: String!
+}
+
+input UserGetDtoFilterInput {
+    active: BooleanOperationFilterInput
+    and: [UserGetDtoFilterInput!]
+    createdAt: DateTimeOperationFilterInput
+    email: StringOperationFilterInput
+    firstName: StringOperationFilterInput
+    id: UuidOperationFilterInput
+    lastName: StringOperationFilterInput
+    or: [UserGetDtoFilterInput!]
+    phone: StringOperationFilterInput
+    role: SsoRoleOperationFilterInput
+    updatedAt: DateTimeOperationFilterInput
+    userName: StringOperationFilterInput
+}
+
+input UserGetDtoSortInput {
+    active: SortEnumType
+    createdAt: SortEnumType
+    email: SortEnumType
+    firstName: SortEnumType
+    id: SortEnumType
+    lastName: SortEnumType
+    phone: SortEnumType
+    role: SortEnumType
+    updatedAt: SortEnumType
+    userName: SortEnumType
+}
+
+input UserLoginDtoInput {
+    password: String!
+    userName: String!
+}
+
+input UserUpdateDtoInput {
+    email: String!
+    firstName: String!
+    lastName: String!
+    phone: String
+    userName: String!
+}
+
+input UuidOperationFilterInput {
+    eq: UUID
+    gt: UUID
+    gte: UUID
+    in: [UUID]
+    lt: UUID
+    lte: UUID
+    neq: UUID
+    ngt: UUID
+    ngte: UUID
+    nin: [UUID]
+    nlt: UUID
+    nlte: UUID
+}

@@ -1,0 +1,14 @@
+﻿schema: schema.graphql
+documents: '**/*.graphql'
+
+extensions:
+  endpoints:
+    default:
+      introspect: false
+      url: http://localhost/graphql
+    stage:
+      introspect: false
+      url: https://stage.sso.saveapis.de/graphql
+    prod:
+      introspect: false
+      url: https://sso.saveapis.de/graphql

@@ -1,0 +1,21 @@
+﻿GRAPHQL {{url}}
+Authorization: Bearer {{token}}
+
+query($id: UUID!) {
+    userById(id: $id) {
+        id
+        createdAt
+        updatedAt
+        firstName
+        lastName
+        email
+        phone
+        userName
+        role
+        active
+    }
+}
+
+{
+  "id": "1c519e15-24b2-4df7-8406-03174309443c"
+}

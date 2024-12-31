@@ -1,0 +1,17 @@
+﻿GRAPHQL {{url}}
+Authorization: Bearer {{token}}
+
+query {
+    users {
+        id
+        createdAt
+        updatedAt
+        firstName
+        lastName
+        email
+        phone
+        userName
+        role
+        active
+    }
+}

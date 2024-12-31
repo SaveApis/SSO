@@ -32,6 +32,15 @@ jobs:
         env:
           ENVIRONMENT: staging
           JWT_KEY: ${{ secrets.STAGE_JWT_KEY }}
+          MYSQL_HOST: ${{ secrets.STAGE_MYSQL_HOST }}
+          MYSQL_PORT: ${{ secrets.STAGE_MYSQL_PORT }}
+          MYSQL_USERNAME: ${{ secrets.STAGE_MYSQL_USERNAME }}
+          MYSQL_PASSWORD: ${{ secrets.STAGE_MYSQL_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.STAGE_MYSQL_DATABASE }}
+          SMTP_HOST: ${{ secrets.STAGE_SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.STAGE_SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.STAGE_SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.STAGE_SMTP_PASSWORD }}
       - name: Render namespace
         uses: nowactions/envsubst@v1.0.1
         with:

@@ -1,0 +1,26 @@
+﻿GRAPHQL {{url}}
+Authorization: Bearer {{token}}
+
+mutation($dto: UserCreateDtoInput!) {
+    createAdministratorUser(dto: $dto) {
+        id
+        createdAt
+        updatedAt
+        firstName
+        lastName
+        email
+        phone
+        userName
+        role
+        active
+    }
+}
+
+{
+  "dto": {
+    "firstName": "Felix",
+    "lastName": "Administrator",
+    "email": "felix.administrator@saveapis.com",
+    "userName": "felix.administrator"
+  }
+}

@@ -11,3 +11,16 @@ secretGenerator:
   - name: jwt
     literals:
       - key=${JWT_KEY}
+  - name: mysql
+    literals:
+      - host=${MYSQL_HOST}
+      - port=${MYSQL_PORT}
+      - user=${MYSQL_USERNAME}
+      - password=${MYSQL_PASSWORD}
+      - database=${MYSQL_DATABASE}
+  - name: smtp
+    literals:
+      - host=${SMTP_HOST}
+      - port=${SMTP_PORT}
+      - user=${SMTP_USERNAME}
+      - password=${SMTP_PASSWORD}
