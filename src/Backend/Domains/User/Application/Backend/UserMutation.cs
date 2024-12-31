@@ -80,11 +80,14 @@ public static class UserMutation
     public static async Task<UserGetDto> UpdateUser([Service] IMediator mediator, [Service] IHttpContextAccessor contextAccessor, Guid id,
         UserUpdateDto dto)
     {
-        var isOwnUser = contextAccessor.HttpContext?.User.Claims.Any(c => c.Type == nameof(UserEntity.Id) && c.Value == id.ToString());
-        if (!isOwnUser.HasValue || !isOwnUser.Value)
+        var isSelfUser = contextAccessor.HttpContext?.User.Claims.Any(c => c.Type == nameof(UserEntity.Id) && c.Value == id.ToString());
+        if (!isSelfUser.HasValue || !isSelfUser.Value)
         {
             var isDeveloper = contextAccessor.HttpContext?.User.IsInRole(nameof(SsoRole.Developer));
-            if (!isDeveloper.HasValue || !isDeveloper.Value)
+            var isAdministrator = contextAccessor.HttpContext?.User.IsInRole(nameof(SsoRole.Administrator));
+
+            var isRole = (!isDeveloper.HasValue || !isDeveloper.Value) && (!isAdministrator.HasValue || !isAdministrator.Value);
+            if (isRole)
             {
                 throw new UnauthorizedAccessException();
             }
@@ -104,8 +107,8 @@ public static class UserMutation
     [Authorize(Roles = [nameof(SsoRole.Developer), nameof(SsoRole.Administrator)])]
     public static async Task<Guid> DeleteUser([Service] IMediator mediator, [Service] IHttpContextAccessor contextAccessor, Guid id)
     {
-        var isOwnUser = contextAccessor.HttpContext?.User.Claims.Any(c => c.Type == nameof(UserEntity.Id) && c.Value == id.ToString());
-        if (!isOwnUser.HasValue || isOwnUser.Value)
+        var isSelfUser = contextAccessor.HttpContext?.User.Claims.Any(c => c.Type == nameof(UserEntity.Id) && c.Value == id.ToString());
+        if (!isSelfUser.HasValue || isSelfUser.Value)
         {
             throw new InvalidOperationException("You cannot delete yourself.");
         }

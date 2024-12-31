@@ -41,6 +41,15 @@ jobs:
         env:
           ENVIRONMENT: production
           JWT_KEY: ${{ secrets.PROD_JWT_KEY }}
+          MYSQL_HOST: ${{ secrets.PROD_MYSQL_HOST }}
+          MYSQL_PORT: ${{ secrets.PROD_MYSQL_PORT }}
+          MYSQL_USERNAME: ${{ secrets.PROD_MYSQL_USERNAME }}
+          MYSQL_PASSWORD: ${{ secrets.PROD_MYSQL_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.PROD_MYSQL_DATABASE }}
+          SMTP_HOST: ${{ secrets.PROD_SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.PROD_SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.PROD_SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.PROD_SMTP_PASSWORD }}
       - name: Render namespace
         uses: nowactions/envsubst@v1.0.1
         with:

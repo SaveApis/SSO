@@ -45,6 +45,57 @@ spec:
               value: "0"
             - name: hangfire_redis_prefix
               value: "sso:hangfire:"
+            - name: db_mysql_name
+              value: SSO-${ENVIRONMENT}
+            - name: db_mysql_host
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: host
+            - name: db_mysql_port
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: port
+            - name: db_mysql_user
+               valueFrom:
+                  secretKeyRef:
+                    name: mysql
+                    key: user
+            - name: db_mysql_password
+               valueFrom:
+                  secretKeyRef:
+                    name: mysql
+                    key: password
+            - name: db_mysql_database
+               valueFrom:
+                  secretKeyRef:
+                    name: mysql
+                    key: database
+            - name: smtp_enabled
+              value: "true"
+            - name: smtp_host
+              valueFrom:
+                secretKeyRef:
+                  name: smtp
+                  key: host
+            - name: smtp_port
+              valueFrom:
+                secretKeyRef:
+                  name: smtp
+                  key: port
+            - name: smtp_username
+              valueFrom:
+                secretKeyRef:
+                  name: smtp
+                  key: user
+            - name: smtp_password
+              valueFrom:
+                secretKeyRef:
+                  name: smtp
+                  key: password
+            - name: smtp_enable_ssl
+              value: "true"
           ports:
             - containerPort: 8080
               protocol: TCP
