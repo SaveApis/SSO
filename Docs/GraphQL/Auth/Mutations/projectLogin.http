@@ -1,0 +1,13 @@
+﻿GRAPHQL {{url}}
+
+mutation($dto: ProjectLoginDtoInput!) {
+    projectLogin(dto: $dto)
+}
+
+{
+  "dto": {
+    "id": "test",
+    "userName": "felix.user",
+    "password": "s2nS&p!mCIzz$N\\k"
+  }
+}

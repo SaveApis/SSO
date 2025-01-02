@@ -1,4 +1,4 @@
-﻿using Backend.Domains.User.Application.Mapper;
+﻿using Backend.Domains.Common.Application.Mapper;
 using Backend.Domains.User.Application.Mediator.Queries.GetUser;
 using Backend.Domains.User.Application.Mediator.Queries.GetUsers;
 using Backend.Domains.User.Domain;
@@ -22,7 +22,7 @@ public static class UserQuery
     [Authorize(Roles = [nameof(SsoRole.Developer), nameof(SsoRole.Administrator), nameof(SsoRole.Manager)])]
     public static async Task<IEnumerable<UserGetDto>> GetUsers([Service] IMediator mediator)
     {
-        var mapper = new UserMapper();
+        var mapper = new SsoMapper();
 
         var queryResult = await mediator.Send(new GetUsersQuery()).ConfigureAwait(false);
         queryResult.ThrowIfFailed();
@@ -42,7 +42,7 @@ public static class UserQuery
             }
         }
 
-        var mapper = new UserMapper();
+        var mapper = new SsoMapper();
 
         var queryResult = await mediator.Send(new GetUserByIdQuery(UserId.From(id))).ConfigureAwait(false);
         queryResult.ThrowIfFailed();

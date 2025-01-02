@@ -10,11 +10,11 @@
     </PropertyGroup>
 
     <ItemGroup Condition="'$(ImplicitUsings)' == 'enable'">
-        <Using Include="Backend" />
+        <Using Include="Backend"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+        <PackageReference Include="BCrypt.Net-Next" Version="4.0.3"/>
         <PackageReference Include="HotChocolate.Types.Analyzers" Version="14.3.0">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
@@ -35,12 +35,12 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Roslynator.CSharp" Version="4.12.10" />
+        <PackageReference Include="Roslynator.CSharp" Version="4.12.10"/>
         <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.12.10">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="saveapis.core" Version="2.3.0" />
+        <PackageReference Include="saveapis.core" Version="2.3.0"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -54,6 +54,12 @@
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <None Update="Resources\Templates\Mail\welcome.html">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Templates\Mail\project-assigned.html">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Templates\Mail\project-removed.html">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>

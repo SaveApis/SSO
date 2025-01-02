@@ -1,0 +1,30 @@
+﻿GRAPHQL {{url}}
+Authorization: Bearer {{token}}
+
+mutation($projectId: String!, $userId: UUID!) {
+    addUserToProject(projectId: $projectId, userId: $userId) {
+        id
+        createdAt
+        updatedAt
+        name
+        description
+        active
+        users {
+            id
+            createdAt
+            updatedAt
+            firstName
+            lastName
+            email
+            phone
+            userName
+            role
+            active
+        }
+    }
+}
+
+{
+  "projectId": "test",
+  "userId": "753056eb-7a1a-4cd7-bbc0-d080029fdf3e"
+}

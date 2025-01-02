@@ -1,4 +1,6 @@
-﻿using Backend.Domains.User.Domain.VO;
+﻿using Backend.Domains.Common.Domain.VO;
+using Backend.Domains.Project.Domain.Entities;
+using Backend.Domains.User.Domain.VO;
 
 namespace Backend.Domains.User.Domain.Entities;
 
@@ -35,6 +37,8 @@ public class UserEntity
     public string? Hash { get; private set; }
     public bool Active { get; private set; }
     public bool IsInitialUser { get; private set; }
+
+    public virtual ICollection<ProjectEntity> Projects { get; private set; } = [];
 
     public string FullName => $"{FirstName.Value} {LastName.Value}";
 

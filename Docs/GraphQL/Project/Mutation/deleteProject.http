@@ -1,0 +1,10 @@
+﻿GRAPHQL {{url}}
+Authorization: Bearer {{token}}
+
+mutation($id: String!) {
+    deleteProject(id: $id)
+}
+
+{
+  "id": "delete"
+}
