@@ -1,0 +1,29 @@
+﻿GRAPHQL {{url}}
+Authorization: Bearer {{token}}
+
+query($id: String!) {
+    projectById(id: $id) {
+        id
+        createdAt
+        updatedAt
+        name
+        description
+        active
+        users {
+            id
+            createdAt
+            updatedAt
+            firstName
+            lastName
+            email
+            phone
+            userName
+            role
+            active
+        }
+    }
+}
+
+{
+  "id": "test"
+}

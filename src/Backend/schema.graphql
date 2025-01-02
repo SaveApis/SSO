@@ -12,18 +12,40 @@ directive @cost(
 ) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
 
 type Mutation {
+    activateProject(id: String!): ProjectGetDto!
     activateUser(id: UUID!): UserGetDto!
+    addUserToProject(projectId: String!, userId: UUID!): ProjectGetDto!
+    addUsersToProject(projectId: String!, userIds: [UUID!]!): ProjectGetDto!
     createAdministratorUser(dto: UserCreateDtoInput!): UserGetDto!
     createDeveloperUser(dto: UserCreateDtoInput!): UserGetDto!
     createManagerUser(dto: UserCreateDtoInput!): UserGetDto!
+    createProject(dto: ProjectCreateDtoInput!): ProjectGetDto!
     createUser(dto: UserCreateDtoInput!): UserGetDto!
+    deactivateProject(id: String!): ProjectGetDto!
     deactivateUser(id: UUID!): UserGetDto!
+    deleteProject(id: String!): String!
     deleteUser(id: UUID!): UUID!
     login(dto: UserLoginDtoInput!): String!
+    projectLogin(dto: ProjectLoginDtoInput!): Boolean!
+    removeUserFromProject(projectId: String!, userId: UUID!): ProjectGetDto!
+    removeUsersFromProject(projectId: String!, userIds: [UUID!]!): ProjectGetDto!
+    updateProject(dto: ProjectUpdateDtoInput!, id: String!): ProjectGetDto!
     updateUser(dto: UserUpdateDtoInput!, id: UUID!): UserGetDto!
 }
 
+type ProjectGetDto {
+    active: Boolean!
+    createdAt: DateTime!
+    description: String!
+    id: String!
+    name: String!
+    updatedAt: DateTime
+    users: [UserGetDto!]!
+}
+
 type Query {
+    projectById(id: String!): ProjectGetDto!
+    projects: [ProjectGetDto!]!
     userById(id: UUID!): UserGetDto!
     users(order: [UserGetDtoSortInput!], where: UserGetDtoFilterInput): [UserGetDto!]!
 }
@@ -86,6 +108,24 @@ input DateTimeOperationFilterInput {
     nin: [DateTime]
     nlt: DateTime
     nlte: DateTime
+}
+
+input ProjectCreateDtoInput {
+    description: String!
+    id: String!
+    name: String!
+    users: [UUID!]!
+}
+
+input ProjectLoginDtoInput {
+    id: String!
+    password: String!
+    userName: String!
+}
+
+input ProjectUpdateDtoInput {
+    description: String!
+    name: String!
 }
 
 input SsoRoleOperationFilterInput {

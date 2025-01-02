@@ -1,7 +1,7 @@
-﻿using Backend.Domains.User.Application.Hangfire.Events;
+﻿using Backend.Domains.Common.Persistence.Sql;
+using Backend.Domains.User.Application.Hangfire.Events;
 using Backend.Domains.User.Application.Mediator.Errors;
 using Backend.Domains.User.Domain.VO;
-using Backend.Persistence.Sql;
 using FluentResults;
 using MediatR;
 using SaveApis.Core.Infrastructure.Mediator.Commands;

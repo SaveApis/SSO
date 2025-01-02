@@ -1,0 +1,34 @@
+﻿GRAPHQL {{url}}
+Authorization: Bearer {{token}}
+
+mutation($dto: ProjectCreateDtoInput!) {
+    createProject(dto: $dto) {
+        id
+        createdAt
+        updatedAt
+        name
+        description
+        active
+        users {
+            id
+            createdAt
+            updatedAt
+            firstName
+            lastName
+            email
+            phone
+            userName
+            role
+            active
+        }
+    }
+}
+
+{
+  "dto": {
+    "id": "test",
+    "name": "Test",
+    "description": "Test",
+    "users": []
+  }
+}

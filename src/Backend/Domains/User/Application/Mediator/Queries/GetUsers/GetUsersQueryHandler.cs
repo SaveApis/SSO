@@ -1,5 +1,5 @@
-﻿using Backend.Domains.User.Domain.Entities;
-using Backend.Persistence.Sql;
+﻿using Backend.Domains.Common.Persistence.Sql;
+using Backend.Domains.User.Domain.Entities;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using SaveApis.Core.Infrastructure.Mediator.Queries;

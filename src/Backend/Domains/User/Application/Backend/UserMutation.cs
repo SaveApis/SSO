@@ -1,4 +1,4 @@
-﻿using Backend.Domains.User.Application.Mapper;
+﻿using Backend.Domains.Common.Application.Mapper;
 using Backend.Domains.User.Application.Mediator.Commands.ActivateUser;
 using Backend.Domains.User.Application.Mediator.Commands.CreateUser;
 using Backend.Domains.User.Application.Mediator.Commands.DeactivateUser;
@@ -23,7 +23,7 @@ public static class UserMutation
     [Authorize(Roles = [nameof(SsoRole.Developer)])]
     public static async Task<UserGetDto> CreateDeveloperUser([Service] IMediator mediator, UserCreateDto dto)
     {
-        var mapper = new UserMapper();
+        var mapper = new SsoMapper();
 
         var commandResult = await mediator.Send(new CreateUserCommand(dto, SsoRole.Developer)).ConfigureAwait(false);
         commandResult.ThrowIfFailed();
@@ -37,7 +37,7 @@ public static class UserMutation
     [Authorize(Roles = [nameof(SsoRole.Developer)])]
     public static async Task<UserGetDto> CreateAdministratorUser([Service] IMediator mediator, UserCreateDto dto)
     {
-        var mapper = new UserMapper();
+        var mapper = new SsoMapper();
 
         var commandResult = await mediator.Send(new CreateUserCommand(dto, SsoRole.Administrator)).ConfigureAwait(false);
         commandResult.ThrowIfFailed();
@@ -51,7 +51,7 @@ public static class UserMutation
     [Authorize(Roles = [nameof(SsoRole.Developer), nameof(SsoRole.Administrator)])]
     public static async Task<UserGetDto> CreateManagerUser([Service] IMediator mediator, UserCreateDto dto)
     {
-        var mapper = new UserMapper();
+        var mapper = new SsoMapper();
 
         var commandResult = await mediator.Send(new CreateUserCommand(dto, SsoRole.Manager)).ConfigureAwait(false);
         commandResult.ThrowIfFailed();
@@ -65,7 +65,7 @@ public static class UserMutation
     [Authorize(Roles = [nameof(SsoRole.Developer), nameof(SsoRole.Administrator)])]
     public static async Task<UserGetDto> CreateUser([Service] IMediator mediator, UserCreateDto dto)
     {
-        var mapper = new UserMapper();
+        var mapper = new SsoMapper();
 
         var commandResult = await mediator.Send(new CreateUserCommand(dto)).ConfigureAwait(false);
         commandResult.ThrowIfFailed();
@@ -93,7 +93,7 @@ public static class UserMutation
             }
         }
 
-        var mapper = new UserMapper();
+        var mapper = new SsoMapper();
 
         var commandResult = await mediator.Send(new UpdateUserCommand(UserId.From(id), dto)).ConfigureAwait(false);
         commandResult.ThrowIfFailed();
@@ -128,7 +128,7 @@ public static class UserMutation
             throw new InvalidOperationException("You cannot activate yourself.");
         }
 
-        var mapper = new UserMapper();
+        var mapper = new SsoMapper();
 
         var commandResult = await mediator.Send(new ActivateUserCommand(UserId.From(id))).ConfigureAwait(false);
         commandResult.ThrowIfFailed();
@@ -149,7 +149,7 @@ public static class UserMutation
             throw new InvalidOperationException("You cannot deactivate yourself.");
         }
 
-        var mapper = new UserMapper();
+        var mapper = new SsoMapper();
 
         var commandResult = await mediator.Send(new DeactivateUserCommand(UserId.From(id))).ConfigureAwait(false);
         commandResult.ThrowIfFailed();
