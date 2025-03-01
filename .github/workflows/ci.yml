@@ -1,0 +1,139 @@
+name: CI
+
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '.github/workflows/ci.yml'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+      statuses: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Super-linter
+        uses: super-linter/super-linter@v7.3.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: false
+          FIX_CSHARP: true
+          VALIDATE_CSHARP: true
+          VALIDATE_DOCKERFILE_HADOLINT: true
+          VALIDATE_GITHUB_ACTIONS: true
+          VALIDATE_GITLEAKS: true
+      - name: Commit lint fixes
+        if: github.ref_name != github.event.repository.default_branch
+        uses: stefanzweifel/git-auto-commit-action@v5.1.0
+        with:
+          branch: ${{ github.ref }}
+          commit_message: 'fix(linter): C# lint fixes'
+          commit_user_name: ${{ github.actor }}
+          commit_user_email: ${{ github.actor }}@users.noreply.github.com
+  build-csharp:
+    name: Build (C#)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+      - name: Cache
+        id: cache
+        uses: actions/cache@v4.2.2
+        with:
+          path: |
+            ~/.nuget/packages
+            **/obj
+          key: ${{ runner.os }}-csharp-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-csharp-
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4.3.0
+        with:
+          dotnet-version: '9.0.x'
+      - name: Setup Nuget Feeds
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          dotnet nuget add source ${{ secrets.HANGFIRE_PRO_URL }} -n hangfire-pro -u ${{ secrets.HANGFIRE_PRO_USER }} -p ${{ secrets.HANGFIRE_PRO_TOKEN }} --store-password-in-clear-text
+          dotnet nuget add source ${{ secrets.HANGFIRE_ACE_URL }} -n hangfire-ace -u ${{ secrets.HANGFIRE_ACE_USER }} -p ${{ secrets.HANGFIRE_ACE_TOKEN }} --store-password-in-clear-text
+          dotnet nuget add source https://nuget.pkg.github.com/SaveApis/index.json -n github -u ${{ github.actor }} -p ${{ github.token }} --store-password-in-clear-text
+      - name: Restore dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: dotnet restore
+      - name: Build
+        run: dotnet build src/Backend/Backend.csproj --configuration Release --no-restore
+  build-docker:
+    needs: build-csharp
+    name: Build (Docker)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3.6.0
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3.10.0
+      - name: Build
+        uses: docker/build-push-action@v6.15.0
+        with:
+          push: false
+          tags: registry.digitalocean.com/saveapis/sso-backend:dev
+          file: src/Backend/Dockerfile
+          secrets: |
+            hangfire_pro_url=${{ secrets.HANGFIRE_PRO_URL }}
+            hangfire_pro_user=${{ secrets.HANGFIRE_PRO_USER }}
+            hangfire_pro_token=${{ secrets.HANGFIRE_PRO_TOKEN }}
+            hangfire_ace_url=${{ secrets.HANGFIRE_ACE_URL }}
+            hangfire_ace_user=${{ secrets.HANGFIRE_ACE_USER }}
+            hangfire_ace_token=${{ secrets.HANGFIRE_ACE_TOKEN }}
+            github_user=${{ github.actor }}
+            github_token=${{ github.token }}
+  tests:
+    needs: build-csharp
+    name: Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+      - name: Cache
+        id: cache
+        uses: actions/cache@v4.2.2
+        with:
+          path: |
+            ~/.nuget/packages
+            **/obj
+          key: ${{ runner.os }}-csharp-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-csharp-
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4.3.0
+        with:
+          dotnet-version: '9.0.x'
+      - name: Setup Nuget Feeds
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          dotnet nuget add source ${{ secrets.HANGFIRE_PRO_URL }} -n hangfire-pro -u ${{ secrets.HANGFIRE_PRO_USER }} -p ${{ secrets.HANGFIRE_PRO_TOKEN }} --store-password-in-clear-text
+          dotnet nuget add source ${{ secrets.HANGFIRE_ACE_URL }} -n hangfire-ace -u ${{ secrets.HANGFIRE_ACE_USER }} -p ${{ secrets.HANGFIRE_ACE_TOKEN }} --store-password-in-clear-text
+          dotnet nuget add source https://nuget.pkg.github.com/SaveApis/index.json -n github -u ${{ github.actor }} -p ${{ github.token }} --store-password-in-clear-text
+      - name: Restore dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: dotnet restore
+      - name: Test
+        run: dotnet test tests/SSO.Tests/SSO.Tests.csproj --no-restore
