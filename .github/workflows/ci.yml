@@ -48,8 +48,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
-        with:
-          fetch-depth: 0
       - name: Cache
         id: cache
         uses: actions/cache@v4.2.2
@@ -73,7 +71,7 @@ jobs:
           dotnet nuget add source https://nuget.pkg.github.com/SaveApis/index.json -n github -u ${{ github.actor }} -p ${{ github.token }} --store-password-in-clear-text
       - name: Restore dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: dotnet restore src/Backend/Backend.csproj
+        run: dotnet restore
       - name: Build
         run: dotnet build src/Backend/Backend.csproj --configuration Release --no-restore
   build-docker:
@@ -103,3 +101,39 @@ jobs:
             hangfire_ace_token=${{ secrets.HANGFIRE_ACE_TOKEN }}
             github_user=${{ github.actor }}
             github_token=${{ github.token }}
+  tests:
+    needs: build-csharp
+    name: Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+      - name: Cache
+        id: cache
+        uses: actions/cache@v4.2.2
+        with:
+          path: |
+            ~/.nuget/packages
+            **/obj
+          key: ${{ runner.os }}-csharp-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-csharp-
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4.3.0
+        with:
+          dotnet-version: '9.0.x'
+      - name: Setup Nuget Feeds
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          dotnet nuget add source ${{ secrets.HANGFIRE_PRO_URL }} -n hangfire-pro -u ${{ secrets.HANGFIRE_PRO_USER }} -p ${{ secrets.HANGFIRE_PRO_TOKEN }} --store-password-in-clear-text
+          dotnet nuget add source ${{ secrets.HANGFIRE_ACE_URL }} -n hangfire-ace -u ${{ secrets.HANGFIRE_ACE_USER }} -p ${{ secrets.HANGFIRE_ACE_TOKEN }} --store-password-in-clear-text
+          dotnet nuget add source https://nuget.pkg.github.com/SaveApis/index.json -n github -u ${{ github.actor }} -p ${{ github.token }} --store-password-in-clear-text
+      - name: Restore dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: dotnet restore
+      - name: Test
+        run: dotnet test tests/SSO.Tests/SSO.Tests.csproj --no-restore
