@@ -1,0 +1,123 @@
+﻿name: CI
+on:
+  push:
+  workflow_dispatch:
+  merge_group:
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      statuses: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+      - name: Super-Linter
+        uses: super-linter/super-linter@v7.3.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          VALIDATE_ALL_CODEBASE: true
+          VALIDATE_CSHARP: true
+          VALIDATE_GITHUB_ACTIONS: true
+          VALIDATE_GITLEAKS: true
+  build-csharp:
+    name: Build (C#)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+      - name: Cache
+        id: cache
+        uses: actions/cache@v4.2.3
+        with:
+          key: ${{ github.ref }}-dotnet-${{ hashFiles('**/*.sln', '**/*.csproj') }}
+          path: |
+            ~/.nuget/packages
+            **/obj
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v4.3.1
+        with:
+          dotnet-version: 9.0.x
+      - name: Setup NuGet Feeds
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          dotnet nuget add source ${{ secrets.HANGFIRE_ACE_URL }} --name hangfire-ace --username ${{ secrets.HANGFIRE_ACE_USER }} --password ${{ secrets.HANGFIRE_ACE_TOKEN }} --store-password-in-clear-text
+          dotnet nuget add source ${{ secrets.HANGFIRE_PRO_URL }} --name hangfire-pro --username ${{ secrets.HANGFIRE_PRO_USER }} --password ${{ secrets.HANGFIRE_PRO_TOKEN }} --store-password-in-clear-text
+          dotnet nuget add source https://nuget.pkg.github.com/SaveApis/index.json --name github --username ${{ github.actor }} --password ${{ github.token }} --store-password-in-clear-text
+      - name: Restore
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: dotnet restore .
+      - name: Build
+        run: dotnet build src/Backend/Backend.csproj --framework net9.0 --configuration Release --no-restore --nologo
+  test:
+    needs: build-csharp
+    name: Test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+      - name: Cache
+        id: cache
+        uses: actions/cache@v4.2.3
+        with:
+          key: ${{ github.ref }}-dotnet-${{ hashFiles('**/*.sln', '**/*.csproj') }}
+          path: |
+            ~/.nuget/packages
+            **/obj
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v4.3.1
+        with:
+          dotnet-version: 9.0.x
+      - name: Setup NuGet Feeds
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          dotnet nuget add source ${{ secrets.HANGFIRE_ACE_URL }} --name hangfire-ace --username ${{ secrets.HANGFIRE_ACE_USER }} --password ${{ secrets.HANGFIRE_ACE_TOKEN }} --store-password-in-clear-text
+          dotnet nuget add source ${{ secrets.HANGFIRE_PRO_URL }} --name hangfire-pro --username ${{ secrets.HANGFIRE_PRO_USER }} --password ${{ secrets.HANGFIRE_PRO_TOKEN }} --store-password-in-clear-text
+          dotnet nuget add source https://nuget.pkg.github.com/SaveApis/index.json --name github --username ${{ github.actor }} --password ${{ github.token }} --store-password-in-clear-text
+      - name: Restore
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: dotnet restore .
+      - name: Build
+        run: dotnet build tests/Backend.Tests/Backend.Tests.csproj --framework net9.0 --configuration Release --no-restore --nologo
+      - name: Test
+        run: dotnet test tests/Backend.Tests/Backend.Tests.csproj --no-build --nologo --configuration Release --framework net9.0 --no-restore
+  build-docker:
+    needs: build-csharp
+    name: Build (Docker)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+      - name: Docker Setup QEMU
+        uses: docker/setup-qemu-action@v3.6.0
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v3.10.0
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v6.15.0
+        with:
+          push: false
+          file: src/Backend/Dockerfile
+          tags: registry.digitalocean.com/saveapis/sso-backend:dev
+          secrets: |
+            hangfire_ace_url=${{ secrets.HANGFIRE_ACE_URL }}
+            hangfire_ace_user=${{ secrets.HANGFIRE_ACE_USER }}
+            hangfire_ace_token=${{ secrets.HANGFIRE_ACE_TOKEN }}
+            hangfire_pro_url=${{ secrets.HANGFIRE_PRO_URL }}
+            hangfire_pro_user=${{ secrets.HANGFIRE_PRO_USER }}
+            hangfire_pro_token=${{ secrets.HANGFIRE_PRO_TOKEN }}
+            github_user=${{ github.actor }}
+            github_token=${{ github.token }}

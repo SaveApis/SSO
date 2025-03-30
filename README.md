@@ -1,0 +1,1 @@
+﻿[![Super-Linter](https://github.com/SaveApis/SSO/actions/workflows/ci.yml/badge.svg)](https://github.com/marketplace/actions/super-linter)
