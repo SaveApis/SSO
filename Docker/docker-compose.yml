@@ -1,0 +1,105 @@
+﻿name: SSO
+
+services:
+  backend-server:
+    depends_on:
+      redis:
+        condition: service_healthy
+    image: sso-backend-server:dev
+    build:
+      context: ..
+      dockerfile: src/Backend/Dockerfile
+    environment:
+      - aspnetcore_environment=Development
+      - logging_outputs=console
+      - hangfire_type=server
+      - hangfire_redis_host=redis
+      - hangfire_redis_port=6379
+      - hangfire_redis_database=0
+      - hangfire_redis_prefix=sso:hangfire
+  backend-worker:
+    depends_on:
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    image: sso-backend-worker:dev
+    build:
+      context: ..
+      dockerfile: src/Backend/Dockerfile
+    environment:
+      - aspnetcore_environment=Development
+      - database_sql_name=SSO
+      - database_sql_server=mysql
+      - database_sql_port=3306
+      - database_sql_database=sso
+      - database_sql_user=sso
+      - database_sql_password=sso
+      - logging_outputs=console
+      - hangfire_type=worker
+      - hangfire_redis_host=redis
+      - hangfire_redis_port=6379
+      - hangfire_redis_database=0
+      - hangfire_redis_prefix=sso:hangfire
+  backend-backend:
+    depends_on:
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    image: sso-backend-backend:dev
+    build:
+      context: ..
+      dockerfile: src/Backend/Dockerfile
+    environment:
+      - aspnetcore_environment=Development
+      - backend=true
+      - database_sql_name=SSO
+      - database_sql_server=mysql
+      - database_sql_port=3306
+      - database_sql_database=sso
+      - database_sql_user=sso
+      - database_sql_password=sso
+      - logging_outputs=console
+      - hangfire_type=other
+      - hangfire_redis_host=redis
+      - hangfire_redis_port=6379
+      - hangfire_redis_database=0
+      - hangfire_redis_prefix=sso:hangfire
+      - hangfire_title=SSO
+      - jwt_issuer=https://sso.saveapis.de
+      - jwt_audience=https://sso.saveapis.de
+      - jwt_key=12312312312312312312312312312312
+    ports:
+      - "80:8080"
+  redis:
+    image: redis:8.0-M04-alpine3.21
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 1s
+      retries: 20
+  mysql:
+    image: mysql:9.2.0
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=sso
+      - MYSQL_USER=sso
+      - MYSQL_PASSWORD=sso
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: [ "CMD-SHELL", "mysql -usso -psso -e \"select 1\"" ]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - mysql:/var/lib/mysql
+
+volumes:
+  redis:
+  mysql:
