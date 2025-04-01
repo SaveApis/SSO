@@ -1,0 +1,28 @@
+﻿namespace: sso-${ENVIRONMENT}
+resources:
+  - infrastructure/namespace.yaml
+  - infrastructure/redis/deployment.yaml
+  - infrastructure/redis/service.yaml
+  - infrastructure/elasticsearch/deployment.yaml
+  - infrastructure/elasticsearch/service.yaml
+  - infrastructure/kibana/deployment.yaml
+  - infrastructure/kibana/service.yaml
+  - application/server/deployment.yaml
+  - application/worker/deployment.yml
+  - application/backend/deployment.yml
+  - application/backend/service.yml
+  - application/backend/ingress.yml
+
+secretGenerator:
+  - name: mysql
+    literals:
+      - mysql_server=${MYSQL_SERVER}
+      - mysql_port=${MYSQL_PORT}
+      - mysql_database=${MYSQL_DATABASE}
+      - mysql_user=${MYSQL_USER}
+      - mysql_password=${MYSQL_PASSWORD}
+  - name: jwt
+    literals:
+      - jwt_key=${JWT_KEY}
+      - jwt_issuer=${JWT_ISSUER}
+      - jwt_audience=${JWT_AUDIENCE}

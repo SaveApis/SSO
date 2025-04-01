@@ -1,0 +1,51 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+  labels:
+    company: saveapis
+    project: sso
+    app: server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      company: saveapis
+      project: sso
+      app: server
+  template:
+    metadata:
+      name: server
+      labels:
+        company: saveapis
+        project: sso
+        app: server
+    spec:
+      initContainers:
+        - name: wait-for-redis
+          image: busybox:1.37.0
+          command: [ 'sh', '-c', 'until nc -z redis.sso-${ENVIRONMENT}.svc.cluster.local 6379; do echo waiting for redis; sleep 5; done;' ]
+        - name: wait-for-elasticsearch
+          image: busybox:1.37.0
+          command: [ 'sh', '-c', 'until nc -z elasticsearch.sso-${ENVIRONMENT}.svc.cluster.local 9200; do echo waiting for elasticsearch; sleep 5; done;' ]
+      containers:
+        - name: server
+          image: ${IMAGE}
+          env:
+            - name: aspnetcore_environment
+              value: ${ENVIRONMENT}
+            - name: logging_outputs
+              value: console,elasticsearch
+            - name: logging_elasticsearch_uri
+              value: http://elasticsearch.sso-${ENVIRONMENT}.svc.cluster.local:9200
+            - name: hangfire_type
+              value: server
+            - name: hangfire_redis_host
+              value: redis.sso-${ENVIRONMENT}.svc.cluster.local
+            - name: hangfire_redis_port
+              value: "6379"
+            - name: hangfire_redis_database
+              value: "0"
+            - name: hangfire_redis_prefix
+              value: sso:hangfire
+      restartPolicy: Always

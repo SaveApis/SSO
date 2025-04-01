@@ -1,0 +1,97 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    company: saveapis
+    project: sso
+    app: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      company: saveapis
+      project: sso
+      app: backend
+  template:
+    metadata:
+      name: backend
+      labels:
+        company: saveapis
+        project: sso
+        app: backend
+    spec:
+      initContainers:
+        - name: wait-for-redis
+          image: busybox:1.37.0
+          command: [ 'sh', '-c', 'until nc -z redis.sso-${ENVIRONMENT}.svc.cluster.local 6379; do echo waiting for redis; sleep 5; done;' ]
+        - name: wait-for-elasticsearch
+          image: busybox:1.37.0
+          command: [ 'sh', '-c', 'until nc -z elasticsearch.sso-${ENVIRONMENT}.svc.cluster.local 9200; do echo waiting for elasticsearch; sleep 5; done;' ]
+      containers:
+        - name: backend
+          image: ${IMAGE}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: backend
+              value: "true"
+            - name: aspnetcore_environment
+              value: ${ENVIRONMENT}
+            - name: logging_outputs
+              value: console,elasticsearch
+            - name: logging_elasticsearch_uri
+              value: http://elasticsearch.sso-${ENVIRONMENT}.svc.cluster.local:9200
+            - name: database_sql_name
+              value: SSO
+            - name: database_sql_server
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: mysql_server
+            - name: database_sql_port
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: mysql_port
+            - name: database_sql_database
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: mysql_database
+            - name: database_sql_user
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: mysql_user
+            - name: database_sql_password
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: mysql_password
+            - name: hangfire_type
+              value: other
+            - name: hangfire_redis_host
+              value: redis.sso-${ENVIRONMENT}.svc.cluster.local
+            - name: hangfire_redis_port
+              value: "6379"
+            - name: hangfire_redis_database
+              value: "0"
+            - name: hangfire_redis_prefix
+              value: sso:hangfire
+            - name: jwt_key
+              valueFrom:
+                secretKeyRef:
+                  name: jwt
+                  key: jwt_key
+            - name: jwt_issuer
+              valueFrom:
+                secretKeyRef:
+                  name: jwt
+                  key: jwt_issuer
+            - name: jwt_audience
+              valueFrom:
+                secretKeyRef:
+                  name: jwt
+                  key: jwt_audience
+      restartPolicy: Always
+      

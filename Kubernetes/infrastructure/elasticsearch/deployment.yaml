@@ -1,0 +1,36 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch
+  labels:
+    company: saveapis
+    project: sso
+    app: elasticsearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      company: saveapis
+      project: sso
+      app: elasticsearch
+  template:
+    metadata:
+      name: elasticsearch
+      labels:
+        company: saveapis
+        project: sso
+        app: elasticsearch
+    spec:
+      containers:
+        - name: elasticsearch
+          image: elasticsearch:8.17.3
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: discovery.type
+              value: single-node
+            - name: xpack.security.enabled
+              value: "false"
+          ports:
+            - containerPort: 9200
+              protocol: TCP
+      restartPolicy: Always

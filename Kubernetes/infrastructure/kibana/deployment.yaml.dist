@@ -1,0 +1,38 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  labels:
+    company: saveapis
+    project: sso
+    app: kibana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      company: saveapis
+      project: sso
+      app: kibana
+  template:
+    metadata:
+      name: kibana
+      labels:
+        company: saveapis
+        project: sso
+        app: kibana
+    spec:
+      initContainers:
+        - name: wait-for-elasticsearch
+          image: busybox:1.37.0
+          command: [ 'sh', '-c', 'until nc -z elasticsearch.sso-${ENVIRONMENT}.svc.cluster.local 9200; do echo waiting for elasticsearch; sleep 5; done;' ]
+      containers:
+        - name: kibana
+          image: kibana:8.17.3
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              value: "http://elasticsearch.sso-${ENVIRONMENT}.svc.cluster.local:9200"
+          ports:
+            - containerPort: 5601
+              protocol: TCP
+      restartPolicy: Always
