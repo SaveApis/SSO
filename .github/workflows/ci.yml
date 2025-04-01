@@ -1,6 +1,10 @@
 ﻿name: CI
 on:
   push:
+    paths:
+      - '.github/workflows/ci.yml'
+      - 'src/**'
+      - 'tests/**'
   workflow_dispatch:
   merge_group:
 

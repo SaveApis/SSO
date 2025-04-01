@@ -1,0 +1,97 @@
+﻿name: Deploy (Stage)
+on:
+  workflow_run:
+    types:
+      - completed
+    workflows:
+      - CD (Stage)
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@vv4.0.0
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2.5.1
+        with:
+          token: ${{ secrets.DIGITALOCEAN_REGISTRY_TOKEN }}
+      - name: Set up Kubeconfig
+        run: doctl kubernetes cluster kubeconfig save saveapis
+
+      - name: Inject environment (Kustomize)
+        uses: franzbischoff/replace_envs@v2
+        env:
+          ENVIRONMENT: staging
+          MYSQL_SERVER: ${{ secrets.STAGE_MYSQL_SERVER }}
+          MYSQL_PORT: ${{ secrets.STAGE_MYSQL_PORT }}
+          MYSQL_DATABASE: ${{ secrets.STAGE_MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.STAGE_MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.STAGE_MYSQL_PASSWORD }}
+          JWT_KEY: ${{ secrets.STAGE_JWT_KEY }}
+          JWT_ISSUER: ${{ secrets.STAGE_JWT_ISSUER }}
+          JWT_AUDIENCE: ${{ secrets.STAGE_JWT_AUDIENCE }}
+        with:
+          from_file: Kubernetes/kustomization.yaml.dist
+          to_file: Kubernetes/kustomization.yaml
+          commit: false
+      - name: Inject environment (Namespace)
+        uses: franzbischoff/replace_envs@v2
+        env:
+          ENVIRONMENT: staging
+        with:
+          from_file: Kubernetes/infrastructure/namespace.yaml.dist
+          to_file: Kubernetes/infrastructure/namespace.yaml
+          commit: false
+      - name: Inject environment (Kibana)
+        uses: franzbischoff/replace_envs@v2
+        env:
+          ENVIRONMENT: staging
+        with:
+          from_file: Kubernetes/infrastructure/kibana/deployment.yaml.dist
+          to_file: Kubernetes/infrastructure/kibana/deployment.yaml
+          commit: false
+      - name: Inject environment (Worker)
+        uses: franzbischoff/replace_envs@v2
+        env:
+          ENVIRONMENT: staging
+          IMAGE: registry.digitalocean.com/saveapis/sso-backend:${{ github.sha }}
+        with:
+          from_file: Kubernetes/application/worker/deployment.yaml.dist
+          to_file: Kubernetes/application/worker/deployment.yaml
+          commit: false
+      - name: Inject environment (Server)
+        uses: franzbischoff/replace_envs@v2
+        env:
+          ENVIRONMENT: staging
+          IMAGE: registry.digitalocean.com/saveapis/sso-backend:${{ github.sha }}
+        with:
+          from_file: Kubernetes/application/server/deployment.yaml.dist
+          to_file: Kubernetes/application/server/deployment.yaml
+          commit: false
+      - name: Inject environment (Backend/Deployment)
+        uses: franzbischoff/replace_envs@v2
+        env:
+          ENVIRONMENT: staging
+          IMAGE: registry.digitalocean.com/saveapis/sso-backend:${{ github.sha }}
+        with:
+          from_file: Kubernetes/application/backend/deployment.yaml.dist
+          to_file: Kubernetes/application/backend/deployment.yaml
+          commit: false
+      - name: Inject environment (Backend/Ingress)
+        uses: franzbischoff/replace_envs@v2
+        env:
+          ENVIRONMENT: staging
+        with:
+          from_file: Kubernetes/application/backend/ingress.yaml.dist
+          to_file: Kubernetes/application/backend/ingress.yaml
+          commit: false
+
+      - name: Deploy to Kubernetes
+        run: kubectl apply -k Kubernetes
